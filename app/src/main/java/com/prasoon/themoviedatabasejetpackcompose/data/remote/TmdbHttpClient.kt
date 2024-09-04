@@ -56,6 +56,5 @@ class TmdbHttpClient @Inject constructor() {
         private const val TIME_OUT = 10_000
         private const val TAG_KTOR_LOGGER = "ktor_logger:"
         private const val TAG_HTTPS_STATUS_LOGGER = "http_status:"
-
     }
 }

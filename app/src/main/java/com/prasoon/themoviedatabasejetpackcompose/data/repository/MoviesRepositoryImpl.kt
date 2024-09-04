@@ -14,6 +14,7 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.url
 import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 private const val POPULAR_MOVIES = "$BASE_URL/3/movie/popular"
@@ -23,21 +24,20 @@ private const val TAG = "MoviesRepositoryImpl"
 class MoviesRepositoryImpl @Inject constructor(private val httpClient: HttpClient) :
     MoviesRepository {
 
-    override suspend fun getPopularMovies(page: Int): Resource<PopularMovies> {
+    override suspend fun getPopularMovies(page: Int): PopularMovies {
         return try {
             val response = httpClient.get<PopularMoviesDto> {
                 url(POPULAR_MOVIES)
                 parameter("page", page)  // Add page parameter to the query
             }.toPopularMovies()
             Log.i(TAG, "$response")
-
-            Resource.Success(response)
+            response
         } catch (e: Exception) {
             e.printStackTrace()
             when (e) {
-                is IOException -> Resource.Failure(Exception("No internet connection"))
-                is TimeoutCancellationException -> Resource.Failure(Exception("Request timed out"))
-                else -> Resource.Failure(e)
+                is IOException -> throw Exception("No internet connection")
+                is TimeoutCancellationException -> throw Exception("Request timed out")
+                else -> throw Exception (e)
             }
         }
     }

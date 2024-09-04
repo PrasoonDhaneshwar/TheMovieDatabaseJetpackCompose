@@ -34,7 +34,4 @@ data class MovieDto(
     val voteAverage: Double,
     @SerialName("vote_count")
     val voteCount: Int
-) {
-    val fullPosterPath: String
-        get() = "https://image.tmdb.org/t/p/original/$posterPath"
-}
+)

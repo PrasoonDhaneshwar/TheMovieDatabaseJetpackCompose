@@ -3,12 +3,12 @@ package com.prasoon.themoviedatabasejetpackcompose.ui
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -16,7 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,52 +49,54 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel) {
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Search Movie by title...") }
         )
-        Log.d(TAG, "isSearching: $isSearching searchMoviesList: $searchMoviesList, errorMessage: $errorMessage")
+        Log.d(
+            TAG, "isSearching: $isSearching " +
+                    "searchMoviesList is empty: ${searchMoviesList.isEmpty()}, " +
+                    "errorMessage: $errorMessage, isLoading: $isLoading"
+        )
 
         if (searchText.length > 2) {
             Box(modifier = Modifier.fillMaxSize()) {
-                if (searchMoviesList.isEmpty() && !isLoading && errorMessage == null) {
-                    // Show message if no movies found
-                    Text(
-                        text = "No movies available",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else if (isLoading) {
-                    Text(
-                        text = "Loading...",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else if(!errorMessage.isNullOrEmpty()) {
+                if (isLoading && errorMessage.isNullOrEmpty()) {
+                    Text(text = "Loading...", modifier = Modifier.align(Alignment.Center))
+                } else if (isSearching && errorMessage.isNullOrEmpty()) {
+                    Text(text = "Searching...", modifier = Modifier.align(Alignment.Center))
+                } else if (!isSearching && !isLoading &&
+                    errorMessage.isNullOrEmpty() &&
+                    searchMoviesList.isEmpty()
+                ) {
+                    Text(text = "No movies available.", modifier = Modifier.align(Alignment.Center))
+                } else if (!errorMessage.isNullOrEmpty()) {
                     // In case of exception
                     Text(
                         text = errorMessage.toString(),
                         modifier = Modifier.align(Alignment.Center)
                     )
-                }
-                else {
+                } else {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(items = searchMoviesList) { movie ->
                             MovieItem(movie = movie, onItemClick = {
-                                Log.i(TAG, "Got the MOVIE ID: ${movie.id}")
-                                Log.i(TAG, "Got the MOVIE ID: MovieDetailScreen ${NavScreen.MovieDetailScreen.route + "/${movie.id}"}")
-
-                                navController.navigate(NavScreen.MovieDetailScreen.route + "/${movie.id}?source=search")
-
+                                Log.i(
+                                    TAG, "clicked item, " +
+                                            "movie.id ${movie.id}. Navigate to " +
+                                            "${NavScreen.MovieDetailScreen.route}/${movie.id}"
+                                )
+                                navController.navigate(
+                                    NavScreen.MovieDetailScreen.route +
+                                            "/${movie.id}?source=search"
+                                )
                             })
-                            Log.i(TAG, "Loading...")
-
                         }
                     }
                 }
-                // Show loading spinner at the center when loading todo
-                if (isLoading && searchMoviesList.isEmpty() && !errorMessage.isNullOrEmpty()) {
-                    Text(
-                        text = errorMessage.toString(),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                    CircularProgressIndicator(modifier = Modifier.padding(16.dp), color = Color.Red)
-                }
             }
+        } else if (!errorMessage.isNullOrEmpty()) {
+            Text(
+                text = errorMessage.toString(),
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxHeight()
+            )
         }
     }
 }

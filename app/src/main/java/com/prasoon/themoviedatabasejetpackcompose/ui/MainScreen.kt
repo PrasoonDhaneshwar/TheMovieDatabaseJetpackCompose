@@ -18,7 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.prasoon.themoviedatabasejetpackcompose.ui.bottomnavigation.BottomAppNavGraph
+import com.prasoon.themoviedatabasejetpackcompose.ui.bottomnavigation.AppNavGraph
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.PopularMoviesViewModel
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 
@@ -33,7 +33,7 @@ fun MainScreen() {
         }
     ) {
         Column(Modifier.padding(it)) {
-            BottomAppNavGraph(navController = navController, popularMoviesViewModel, searchViewModel)
+            AppNavGraph(navController = navController, popularMoviesViewModel, searchViewModel)
         }
     }
 }

@@ -28,7 +28,6 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchMoviesUseCase: SearchMoviesUseCase,
-    //private val repository: MoviesRepository,
 ) : ViewModel() {
 
     private val TAG = "SearchViewModel"
@@ -45,7 +44,6 @@ class SearchViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
-
     private val _searchMovieList = MutableStateFlow<List<Movie>>(emptyList())
 
     // Always be called whenever text is searched
@@ -56,7 +54,7 @@ class SearchViewModel @Inject constructor(
         .onEach { _isSearching.update { true } }    // searching to true
         .distinctUntilChanged() // to avoid duplicate network calls
         .combine(_searchMovieList) { currentSearchText, movies ->
-                // Filter it with the searchtext
+                // Filter it with the searched text
                 when (val resource = searchMoviesUseCase.invoke(query = currentSearchText)) {
                     is Resource.Failure -> _errorMessage.update { resource.exception.message }
                     Resource.Loading -> _isLoading.update { true }
@@ -65,6 +63,7 @@ class SearchViewModel @Inject constructor(
                         _searchMovieList.value = popularMovies.movies
                         Log.d(TAG, "_searchMovieList: ${_searchMovieList.value}")
                         _errorMessage.update { null }
+                        _isLoading.update { false }
                     }
                 }
                 movies.filter {
@@ -74,7 +73,7 @@ class SearchViewModel @Inject constructor(
         .onEach { _isSearching.update { false } }   // search updated to false
         .stateIn(  // to convert it into StateFlow
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000),   // If UI disappears, then this block is still active for 5 seconds
+            SharingStarted.WhileSubscribed(5000), // If UI disappears, then this block will still be active for 5 seconds
             _searchMovieList.value  // Initial value
         )
 

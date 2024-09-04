@@ -13,7 +13,6 @@ data class Movie(
     fun doesMatchSearchQuery(currentSearchText: String): Boolean {
         val matchingCombinations = listOf(
             "$originalTitle$title",
-            "$title$releaseDate",
             title
             )
         return matchingCombinations.any {

@@ -12,7 +12,7 @@ import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.PopularMoviesView
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 
 @Composable
-fun BottomAppNavGraph(navController: NavHostController, popularMoviesViewModel: PopularMoviesViewModel, searchViewModel: SearchViewModel) {
+fun AppNavGraph(navController: NavHostController, popularMoviesViewModel: PopularMoviesViewModel, searchViewModel: SearchViewModel) {
     val TAG = "BottomAppNavGraph"
     NavHost(navController = navController, startDestination = NavScreen.HomeScreen.route) {
         composable(route = NavScreen.SearchScreen.route) {

@@ -43,19 +43,22 @@ fun MovieDetailScreen(
     popularMoviesViewModel: PopularMoviesViewModel,
     searchViewModel: SearchViewModel
 ) {
+    val TAG = "MovieDetailScreen"
     val spacing = MaterialTheme.spacing
-    Log.i("MovieDetailScreen", "Got the MOVIE ID: $movieId, source: $source")
+    Log.i(TAG, "movieId: $movieId, source: $source")
 
     val movie = when (source) {
         "home" -> {
             popularMoviesViewModel.getMovieById(movieId)
         }
+
         "search" -> {
             searchViewModel.getMovieById(movieId)
         }
+
         else -> null
     }
-    Log.i("MovieDetailScreen", "Got the MOVIE: $movie")
+    Log.i(TAG, "movie found: $movie")
 
     Scaffold { padding ->
         Column(
@@ -118,7 +121,6 @@ fun MovieDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
-
                             Text(text = getMonthYearFromDate(movie.releaseDate))
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -131,10 +133,10 @@ fun MovieDetailScreen(
 
                             Spacer(modifier = Modifier.size(spacing.medium))
 
-
                             Text(
                                 text = "IMDB ${
-                                    movie.voteAverage.toBigDecimal().setScale(1, RoundingMode.UP).toDouble()
+                                    movie.voteAverage.toBigDecimal().setScale(1, RoundingMode.UP)
+                                        .toDouble()
                                 }",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold,
@@ -148,7 +150,6 @@ fun MovieDetailScreen(
                                         bottom = spacing.extraSmall
                                     )
                             )
-
                         }
                     }
                 }

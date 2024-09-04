@@ -65,25 +65,28 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    implementation(libs.lifecycle.viewmodel.compose)
-
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 
+    // Dependency Injection - Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
 
+    //Network client - Ktor
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.logging.jvm)
 
-    implementation(libs.material3)
-
+    // Navigation between screens
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    // Image Loading - Coil
     implementation(libs.coil.compose)
 
+    // Paging
+    implementation (libs.androidx.paging.runtime)
+    implementation (libs.androidx.paging.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
