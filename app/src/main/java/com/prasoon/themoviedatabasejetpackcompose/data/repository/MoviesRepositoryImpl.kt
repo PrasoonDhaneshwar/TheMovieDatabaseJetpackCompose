@@ -25,7 +25,6 @@ class MoviesRepositoryImpl @Inject constructor(private val httpClient: HttpClien
 
     override suspend fun getPopularMovies(page: Int): Resource<PopularMovies> {
         return try {
-
             val response = httpClient.get<PopularMoviesDto> {
                 url(POPULAR_MOVIES)
                 parameter("page", page)  // Add page parameter to the query

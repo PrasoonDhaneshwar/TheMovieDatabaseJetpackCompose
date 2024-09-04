@@ -26,16 +26,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
-    private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
+class SearchViewModel @Inject constructor(
     private val searchMoviesUseCase: SearchMoviesUseCase,
     //private val repository: MoviesRepository,
 ) : ViewModel() {
 
-    private val TAG = "MainViewModel"
-
-    private val _popularMovies = MutableStateFlow<List<Movie>>(emptyList())
-    val popularMovies: StateFlow<List<Movie>> = _popularMovies
+    private val TAG = "SearchViewModel"
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -49,46 +45,31 @@ class MainViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
-    var currentPage = 1
-    var totalPages = 1
-
-    fun processIntent(intent: MovieViewIntent) {
-        when (intent) {
-            MovieViewIntent.LoadPopularMovies -> loadPopularMovies()
-            is MovieViewIntent.SearchMovies -> onSearchMovieChanged(intent.query)
-        }
-    }
 
     private val _searchMovieList = MutableStateFlow<List<Movie>>(emptyList())
 
-    //val searchMovieList: StateFlow<List<Movie>> = _searchMovieList
-    // Always be called whenever searchtext and persons change
+    // Always be called whenever text is searched
     @OptIn(FlowPreview::class)
     val searchMovieList = _searchMoviesText
         .debounce(300)
         .filter { searchPrefix -> (searchPrefix.length > 2) }
         .onEach { _isSearching.update { true } }    // searching to true
         .distinctUntilChanged() // to avoid duplicate network calls
-        .combine(_searchMovieList) { currentSearchText, persons ->
-            if (currentSearchText.isBlank()) {
-                Log.d(TAG, "currentSearchText.isBlank: $persons")
-                persons // show all list
-            } else {
+        .combine(_searchMovieList) { currentSearchText, movies ->
                 // Filter it with the searchtext
-                val resource = searchMoviesUseCase.invoke(query = currentSearchText)
-                when (resource) {
-                    is Resource.Failure -> TODO()
-                    Resource.Loading -> TODO()
+                when (val resource = searchMoviesUseCase.invoke(query = currentSearchText)) {
+                    is Resource.Failure -> _errorMessage.update { resource.exception.message }
+                    Resource.Loading -> _isLoading.update { true }
                     is Resource.Success -> {
                         val popularMovies = resource.result
                         _searchMovieList.value = popularMovies.movies
                         Log.d(TAG, "_searchMovieList: ${_searchMovieList.value}")
+                        _errorMessage.update { null }
                     }
                 }
-                persons.filter {
+                movies.filter {
                     it.doesMatchSearchQuery(currentSearchText)
                 }
-            }
         }
         .onEach { _isSearching.update { false } }   // search updated to false
         .stateIn(  // to convert it into StateFlow
@@ -101,54 +82,10 @@ class MainViewModel @Inject constructor(
         _searchMoviesText.value = query
     }
 
-    init {
-        loadPopularMovies()
-    }
-
-    fun loadPopularMovies() {
-        Log.i(TAG, "loadPopularMovies()")
-
-        if (_isLoading.value || currentPage > totalPages) return
-
-        viewModelScope.launch {
-            _isLoading.value = true
-
-            val resource = getPopularMoviesUseCase.invoke(currentPage)
-            Log.i(TAG, "loadPopularMovies() resource: $resource")
-
-            when (resource) {
-                is Resource.Success -> {
-                    val popularMovies = resource.result
-                    if (popularMovies.movies.isEmpty()) {
-                        _errorMessage.value = "No movies found"
-                    } else {
-                        _popularMovies.value += popularMovies.movies  // Append new data
-                        totalPages = popularMovies.totalPages  // Update total pages
-                        currentPage++  // Increment to the next page
-                    }
-                }
-
-                is Resource.Failure -> {
-                    _errorMessage.value = resource.exception.message  // Set the error message
-                }
-
-                is Resource.Loading -> {
-                    _isLoading.value = false
-                }
-            }
-            _isLoading.value = false
-        }
-    }
-
     fun getMovieById(movieId: Int?): Movie? {
-        Log.i(TAG, "Got the movieId: $movieId")
-        Log.i(TAG, "Got the movieId: ${_popularMovies.value}")
-
-        val movie = _popularMovies.value.find { it.id == movieId }
-        Log.i(TAG, "Got the MOVIE: ${movie}")
-
+        Log.i(TAG, "getMovieById() movieId: $movieId, searchMovieList: ${searchMovieList.value}")
+        val movie = _searchMovieList.value.find { it.id == movieId }
+        Log.i(TAG, "getMovieById() movie: $movie")
         return movie
-
     }
-
 }

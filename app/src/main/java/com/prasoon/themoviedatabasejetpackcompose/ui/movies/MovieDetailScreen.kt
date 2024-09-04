@@ -1,10 +1,9 @@
 package com.prasoon.themoviedatabasejetpackcompose.ui.movies
 
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,13 +31,32 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.prasoon.themoviedatabasejetpackcompose.common.Utils.getMonthYearFromDate
-import com.prasoon.themoviedatabasejetpackcompose.domain.model.Movie
 import com.prasoon.themoviedatabasejetpackcompose.ui.theme.spacing
+import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.PopularMoviesViewModel
+import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 import java.math.RoundingMode
 
 @Composable
-fun MovieDetailScreen(movie: Movie) {
+fun MovieDetailScreen(
+    movieId: Int?,
+    source: String,
+    popularMoviesViewModel: PopularMoviesViewModel,
+    searchViewModel: SearchViewModel
+) {
     val spacing = MaterialTheme.spacing
+    Log.i("MovieDetailScreen", "Got the MOVIE ID: $movieId, source: $source")
+
+    val movie = when (source) {
+        "home" -> {
+            popularMoviesViewModel.getMovieById(movieId)
+        }
+        "search" -> {
+            searchViewModel.getMovieById(movieId)
+        }
+        else -> null
+    }
+    Log.i("MovieDetailScreen", "Got the MOVIE: $movie")
+
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -46,86 +64,92 @@ fun MovieDetailScreen(movie: Movie) {
                 .padding(padding)
                 .padding(5.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                MaterialTheme.colorScheme.surface
-                            ),
-                            start = Offset(0f, Float.POSITIVE_INFINITY),
-                            end = Offset(Float.POSITIVE_INFINITY, 0f)
-                        )
-                    )
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(spacing.extraSmall)
-                    .clip(RoundedCornerShape(spacing.small))
-                    .shadow(elevation = 1.dp)
-            ) {
-
-                Column(
+            if (movie != null) {
+                Box(
                     modifier = Modifier
-                        .padding(spacing.small)
-                        .fillMaxWidth()
-                ) {
-
-                    SubcomposeAsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(movie.fullPosterPath)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit,
-                        loading = {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(all = 128.dp),
-                                color = Color.Green
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    MaterialTheme.colorScheme.surface
+                                ),
+                                start = Offset(0f, Float.POSITIVE_INFINITY),
+                                end = Offset(Float.POSITIVE_INFINITY, 0f)
                             )
-                        }
-                    )
+                        )
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(spacing.extraSmall)
+                        .clip(RoundedCornerShape(spacing.small))
+                        .shadow(elevation = 1.dp)
+                ) {
 
                     Column(
                         modifier = Modifier
-                            .padding(start = spacing.medium)
+                            .padding(spacing.small)
+                            .fillMaxWidth()
                     ) {
-                        Text(
-                            text = movie.originalTitle,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
 
-                        Text(text = getMonthYearFromDate(movie.releaseDate))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = movie.overview,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 7,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.size(spacing.medium))
-
-                        Text(
-                            text = "IMDB ${
-                                movie.voteAverage.toBigDecimal().setScale(1, RoundingMode.UP).toDouble()
-                            }",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(spacing.extraSmall))
-                                .background(Color.Yellow)
-                                .padding(
-                                    start = spacing.small,
-                                    end = spacing.small,
-                                    top = spacing.extraSmall,
-                                    bottom = spacing.extraSmall
+                        SubcomposeAsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(movie.fullPosterPath)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "",
+                            contentScale = ContentScale.Fit,
+                            loading = {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(all = 128.dp),
+                                    color = Color.Green
                                 )
+                            }
                         )
+
+                        Column(
+                            modifier = Modifier
+                                .padding(start = spacing.medium)
+                        ) {
+
+                            Text(
+                                text = movie.originalTitle,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+
+                            Text(text = getMonthYearFromDate(movie.releaseDate))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = movie.overview,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 7,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            Spacer(modifier = Modifier.size(spacing.medium))
+
+
+                            Text(
+                                text = "IMDB ${
+                                    movie.voteAverage.toBigDecimal().setScale(1, RoundingMode.UP).toDouble()
+                                }",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(spacing.extraSmall))
+                                    .background(Color.Yellow)
+                                    .padding(
+                                        start = spacing.small,
+                                        end = spacing.small,
+                                        top = spacing.extraSmall,
+                                        bottom = spacing.extraSmall
+                                    )
+                            )
+
+                        }
                     }
                 }
             }

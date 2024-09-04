@@ -62,7 +62,6 @@ fun MovieItem(movie: Movie, onItemClick: (Movie) -> Unit) {
                     .data(movie.fullPosterPath)
                     .crossfade(true)
                     .build(),
-                //placeholder = painterResource(R.drawable.bg_image_placeholder), //todo add progressbar
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.weight(0.4f),

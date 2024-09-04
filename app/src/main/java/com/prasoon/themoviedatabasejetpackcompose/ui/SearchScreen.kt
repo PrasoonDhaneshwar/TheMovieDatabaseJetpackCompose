@@ -12,23 +12,22 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.prasoon.themoviedatabasejetpackcompose.ui.bottomnavigation.NavScreen
 import com.prasoon.themoviedatabasejetpackcompose.ui.movies.MovieItem
-import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.MainViewModel
-import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.MovieViewIntent
+import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 
 @Composable
-fun SearchScreen(viewModel: MainViewModel = hiltViewModel()) {
-    val movies by viewModel.popularMovies.collectAsState()
+fun SearchScreen(navController: NavController, viewModel: SearchViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
@@ -36,9 +35,11 @@ fun SearchScreen(viewModel: MainViewModel = hiltViewModel()) {
     val searchMoviesList by viewModel.searchMovieList.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
 
+    val TAG = "SearchScreen"
+
     Column {
         Text(
-            text = "SEarch",
+            text = "TMDB",
             fontWeight = FontWeight(900),
             fontFamily = FontFamily.Serif,
             fontSize = 32.sp,
@@ -49,86 +50,50 @@ fun SearchScreen(viewModel: MainViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Search Movie by title...") }
         )
-        Log.d("HomeScreen", "isSearching: $isSearching")
+        Log.d(TAG, "isSearching: $isSearching searchMoviesList: $searchMoviesList, errorMessage: $errorMessage")
 
-        if (isSearching) {
-            Log.d("HomeScreen", "currentSearchText: $searchMoviesList")
+        if (searchText.length > 2) {
             Box(modifier = Modifier.fillMaxSize()) {
-                if (searchMoviesList.isEmpty() && !isSearching /*&& errorMessage == null*/) {
+                if (searchMoviesList.isEmpty() && !isLoading && errorMessage == null) {
                     // Show message if no movies found
                     Text(
                         text = "No movies available",
                         modifier = Modifier.align(Alignment.Center)
                     )
-                } else {
+                } else if (isLoading) {
+                    Text(
+                        text = "Loading...",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else if(!errorMessage.isNullOrEmpty()) {
+                    // In case of exception
+                    Text(
+                        text = errorMessage.toString(),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                else {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(items = searchMoviesList) { movie ->
                             MovieItem(movie = movie, onItemClick = {
-                                //navController.navigate(NavScreen.MovieDetailScreen.route + "/${movie.id}")
+                                Log.i(TAG, "Got the MOVIE ID: ${movie.id}")
+                                Log.i(TAG, "Got the MOVIE ID: MovieDetailScreen ${NavScreen.MovieDetailScreen.route + "/${movie.id}"}")
+
+                                navController.navigate(NavScreen.MovieDetailScreen.route + "/${movie.id}?source=search")
 
                             })
-                        }
+                            Log.i(TAG, "Loading...")
 
-                        // Detect when the user scrolls to the end of the list
-//                    item {
-//                        if (viewModel.currentPage <= viewModel.totalPages && !isLoading) {
-//                            LaunchedEffect(Unit) {
-//                                viewModel.loadPopularMovies()  // Load more data when scrolled to end
-//                            }
-//                            CircularProgressIndicator(Modifier.padding(16.dp))  // Show a loading spinner
-//                        }
-//                    }
-                    }
-                }
-                // Show loading spinner at the center when loading todo
-                if (isSearching && searchMoviesList.isEmpty() /*&& !errorMessage.isNullOrEmpty()*/) {
-                    Text(
-                        text = errorMessage.toString(),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-                }
-            }
-
-        } else {
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (movies.isEmpty() && !isLoading && errorMessage == null) {
-                    // Show message if no movies found
-                    Text(
-                        text = "No movies available",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(items = movies) { movie ->
-                            MovieItem(movie = movie, onItemClick = {
-                                //navController.navigate(NavScreen.MovieDetailScreen.route + "/${movie.id}")
-
-                            })
-                        }
-
-                        // Detect when the user scrolls to the end of the list
-                        item {
-                            if (viewModel.currentPage <= viewModel.totalPages && !isLoading) {
-                                LaunchedEffect(Unit) {
-                                    viewModel.loadPopularMovies()  // Load more data when scrolled to end
-                                }
-                                CircularProgressIndicator(Modifier.padding(16.dp))  // Show a loading spinner
-                            }
                         }
                     }
                 }
                 // Show loading spinner at the center when loading todo
-                if (isLoading && movies.isEmpty() && !errorMessage.isNullOrEmpty()) {
+                if (isLoading && searchMoviesList.isEmpty() && !errorMessage.isNullOrEmpty()) {
                     Text(
                         text = errorMessage.toString(),
                         modifier = Modifier.align(Alignment.Center)
                     )
-                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
-                }
-
-                LaunchedEffect(Unit) {
-                    viewModel.processIntent(MovieViewIntent.LoadPopularMovies)
+                    CircularProgressIndicator(modifier = Modifier.padding(16.dp), color = Color.Red)
                 }
             }
         }
