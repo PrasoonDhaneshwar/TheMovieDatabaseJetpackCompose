@@ -1,7 +1,7 @@
 package com.prasoon.themoviedatabasejetpackcompose.data.remote
 
 import android.util.Log
-import com.prasoon.themoviedatabasejetpackcompose.common.Constants.PARAM_API_KEY
+import com.prasoon.themoviedatabasejetpackcompose.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.features.DefaultRequest
@@ -43,7 +43,7 @@ class TmdbHttpClient @Inject constructor() {
 
         install(DefaultRequest) {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
-            parameter("api_key", PARAM_API_KEY)
+            parameter("api_key", BuildConfig.API_KEY)
         }
 
         engine {
