@@ -12,7 +12,11 @@ import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.PopularMoviesView
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 
 @Composable
-fun AppNavGraph(navController: NavHostController, popularMoviesViewModel: PopularMoviesViewModel, searchViewModel: SearchViewModel) {
+fun AppNavGraph(
+    navController: NavHostController,
+    popularMoviesViewModel: PopularMoviesViewModel,
+    searchViewModel: SearchViewModel
+) {
     val TAG = "BottomAppNavGraph"
     NavHost(navController = navController, startDestination = NavScreen.HomeScreen.route) {
         composable(route = NavScreen.SearchScreen.route) {
@@ -28,8 +32,17 @@ fun AppNavGraph(navController: NavHostController, popularMoviesViewModel: Popula
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getString("id") ?: ""
             val source = backStackEntry.arguments?.getString("source") ?: ""
-            Log.i(TAG, "Navigation backStackEntry.arguments: ${backStackEntry.arguments}, movieId: $movieId")
-            MovieDetailScreen(movieId = Integer.parseInt(movieId), source, popularMoviesViewModel, searchViewModel)
+            Log.i(TAG,"Navigation backStackEntry.arguments: " +
+                    "${backStackEntry.arguments}, movieId: $movieId"
+            )
+            MovieDetailScreen(
+                movieId = Integer.parseInt(movieId),
+                source,
+                popularMoviesViewModel,
+                searchViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                })
         }
     }
 }

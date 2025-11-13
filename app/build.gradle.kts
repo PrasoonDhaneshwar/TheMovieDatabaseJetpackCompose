@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
     id("kotlinx-serialization")
@@ -17,7 +18,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName =(")1.0")
+        versionName = "1.0"
 
         testInstrumentationRunner =("androidx.test.runner.AndroidJUnitRunner")
         vectorDrawables {
