@@ -4,7 +4,7 @@ An Android app to browse through unlimited movies.
 
 ## **👇 Download** ##
 
-Click [here](https://github.com/PrasoonDhaneshwar/the-movie-database-jetpack-compose/releases/download/1.0/TheMovieDatabase-v1.0.apk) to download **TheMovieDatabase** application
+Click [here](https://github.com/PrasoonDhaneshwar/TheMovieDatabaseJetpackCompose/releases/download/2.0/TheMovieDatabase-v2.0.apk) to download **TheMovieDatabase** application
 
 ---
 

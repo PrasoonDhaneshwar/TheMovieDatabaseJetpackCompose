@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">The Movie Database Jetpack Compose</string>
+    <string name="search_movie_by_title" translatable="false">Search Movie by title…</string>
+    <string name="no_movies_available">No movies available.</string>
+    <string name="search_for_a_movie">Search for a movie…</string>
+    <string name="loading">Loading…</string>
+    <string name="searching">Searching…</string>
 </resources>

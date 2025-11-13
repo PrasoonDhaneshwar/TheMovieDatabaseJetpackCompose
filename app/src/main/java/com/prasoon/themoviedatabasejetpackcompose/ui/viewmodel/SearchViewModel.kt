@@ -9,6 +9,7 @@ import com.prasoon.themoviedatabasejetpackcompose.domain.model.PopularMovies
 import com.prasoon.themoviedatabasejetpackcompose.domain.use_case.GetPopularMoviesUseCase
 import com.prasoon.themoviedatabasejetpackcompose.domain.use_case.SearchMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -47,35 +50,38 @@ class SearchViewModel @Inject constructor(
     private val _searchMovieList = MutableStateFlow<List<Movie>>(emptyList())
 
     // Always be called whenever text is searched
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val searchMovieList = _searchMoviesText
         .debounce(300)
-        .filter { searchPrefix -> (searchPrefix.length > 2) }
-        .onEach { _isSearching.update { true } }    // searching to true
-        .distinctUntilChanged() // to avoid duplicate network calls
-        .combine(_searchMovieList) { currentSearchText, movies ->
-                // Filter it with the searched text
-                when (val resource = searchMoviesUseCase.invoke(query = currentSearchText)) {
-                    is Resource.Failure -> _errorMessage.update { resource.exception.message }
-                    Resource.Loading -> _isLoading.update { true }
+        .filter { it.length > 2 }
+        .distinctUntilChanged()
+        .flatMapLatest { query ->
+            flow {
+                _isSearching.value = true
+                _isLoading.value = true
+                _errorMessage.value = null
+
+                when (val resource = searchMoviesUseCase.invoke(query)) {
                     is Resource.Success -> {
-                        val popularMovies = resource.result
-                        _searchMovieList.value = popularMovies.movies
-                        Log.d(TAG, "_searchMovieList: ${_searchMovieList.value}")
-                        _errorMessage.update { null }
-                        _isLoading.update { false }
+                        _searchMovieList.value = resource.result.movies
+                    }
+                    is Resource.Failure -> {
+                        _errorMessage.value = resource.exception.message ?: "Unknown error"
+                        _searchMovieList.value = emptyList()
+                    }
+                    Resource.Loading -> {
+                        _isLoading.update { true }
                     }
                 }
-                movies.filter {
-                    it.doesMatchSearchQuery(currentSearchText)
-                }
+
+                emit(_searchMovieList.value) // Emit current list (empty or not)
+
+                _isLoading.value = false
+                _isSearching.value = false
+            }
         }
-        .onEach { _isSearching.update { false } }   // search updated to false
-        .stateIn(  // to convert it into StateFlow
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000), // If UI disappears, then this block will still be active for 5 seconds
-            _searchMovieList.value  // Initial value
-        )
+        // If UI disappears, then this block will still be active for 5 seconds
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()) // Initial value
 
     fun onSearchMovieChanged(query: String) {
         _searchMoviesText.value = query

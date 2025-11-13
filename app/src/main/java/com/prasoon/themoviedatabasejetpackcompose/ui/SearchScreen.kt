@@ -16,13 +16,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.prasoon.themoviedatabasejetpackcompose.R
 import com.prasoon.themoviedatabasejetpackcompose.ui.bottomnavigation.NavScreen
 import com.prasoon.themoviedatabasejetpackcompose.ui.movies.MovieItem
+import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchUiState
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 
 @Composable
@@ -36,6 +39,15 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel) {
 
     val TAG = "SearchScreen"
 
+    // Derive the UI state
+    val uiState = when {
+        errorMessage != null -> SearchUiState.Error(errorMessage!!)
+        isLoading || isSearching -> SearchUiState.Loading // Show loading all while network call is pending
+        searchText.length > 2 && searchMoviesList.isEmpty() -> SearchUiState.Empty // Only empty if done searching and no results
+        searchMoviesList.isNotEmpty() -> SearchUiState.Success(searchMoviesList)
+        else -> SearchUiState.Idle
+    }
+
     Column {
         Text(
             text = "TMDB",
@@ -47,7 +59,7 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel) {
 
         TextField(value = searchText, onValueChange = viewModel::onSearchMovieChanged,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = "Search Movie by title...") }
+            placeholder = { Text(text = stringResource(R.string.search_movie_by_title)) }
         )
         Log.d(
             TAG, "isSearching: $isSearching " +
@@ -57,30 +69,13 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel) {
 
         if (searchText.length > 2) {
             Box(modifier = Modifier.fillMaxSize()) {
-                if (isLoading && errorMessage.isNullOrEmpty()) {
-                    Text(text = "Loading...", modifier = Modifier.align(Alignment.Center))
-                } else if (isSearching && errorMessage.isNullOrEmpty()) {
-                    Text(text = "Searching...", modifier = Modifier.align(Alignment.Center))
-                } else if (!isSearching && !isLoading &&
-                    errorMessage.isNullOrEmpty() &&
-                    searchMoviesList.isEmpty()
-                ) {
-                    Text(text = "No movies available.", modifier = Modifier.align(Alignment.Center))
-                } else if (!errorMessage.isNullOrEmpty()) {
-                    // In case of exception
-                    Text(
-                        text = errorMessage.toString(),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(items = searchMoviesList) { movie ->
+                when (uiState) {
+                    is SearchUiState.Loading -> Text(stringResource(R.string.loading), modifier = Modifier.align(Alignment.Center))
+                    is SearchUiState.Searching -> Text(stringResource(R.string.searching), modifier = Modifier.align(Alignment.Center))
+                    is SearchUiState.Error -> Text(uiState.message, modifier = Modifier.align(Alignment.Center))
+                    is SearchUiState.Success -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(items = uiState.movies) { movie ->
                             MovieItem(movie = movie, onItemClick = {
-                                Log.i(
-                                    TAG, "clicked item, " +
-                                            "movie.id ${movie.id}. Navigate to " +
-                                            "${NavScreen.MovieDetailScreen.route}/${movie.id}"
-                                )
                                 navController.navigate(
                                     NavScreen.MovieDetailScreen.route +
                                             "/${movie.id}?source=search"
@@ -88,11 +83,13 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel) {
                             })
                         }
                     }
+                    is SearchUiState.Empty -> Text(stringResource(R.string.no_movies_available), modifier = Modifier.align(Alignment.Center))
+                    SearchUiState.Idle -> Text(stringResource(R.string.search_for_a_movie), modifier = Modifier.align(Alignment.Center))
                 }
             }
-        } else if (!errorMessage.isNullOrEmpty()) {
+        } else if (errorMessage != null && errorMessage!!.isNotEmpty()) {
             Text(
-                text = errorMessage.toString(),
+                text = errorMessage ?: "",
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .fillMaxHeight()

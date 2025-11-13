@@ -12,10 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,18 +36,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.prasoon.themoviedatabasejetpackcompose.common.Utils.getMonthYearFromDate
+import com.prasoon.themoviedatabasejetpackcompose.common.DateUtils.getMonthYearFromDate
 import com.prasoon.themoviedatabasejetpackcompose.ui.theme.spacing
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.PopularMoviesViewModel
 import com.prasoon.themoviedatabasejetpackcompose.ui.viewmodel.SearchViewModel
 import java.math.RoundingMode
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailScreen(
     movieId: Int?,
     source: String,
     popularMoviesViewModel: PopularMoviesViewModel,
-    searchViewModel: SearchViewModel
+    searchViewModel: SearchViewModel,
+    onBackClick: () -> Unit
 ) {
     val TAG = "MovieDetailScreen"
     val spacing = MaterialTheme.spacing
@@ -60,7 +68,22 @@ fun MovieDetailScreen(
     }
     Log.i(TAG, "movie found: $movie")
 
-    Scaffold { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    if (movie != null) {
+                        Text(text = movie.title)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

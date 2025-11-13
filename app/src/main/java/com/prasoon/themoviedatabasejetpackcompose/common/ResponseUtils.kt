@@ -1,6 +1,5 @@
 package com.prasoon.themoviedatabasejetpackcompose.common
 
-import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -24,21 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prasoon.themoviedatabasejetpackcompose.R
-import java.util.Locale
 
-object Utils {
-    fun getMonthYearFromDate(dateString: String): String {
-        // Define the input and output date formats
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
-        val outputFormat = SimpleDateFormat("MMMM, yyyy", Locale.ENGLISH)
-
-        // Parse the input date string
-        val date = inputFormat.parse(dateString)
-
-        // Format the date to the desired output format
-        return outputFormat.format(date)
-    }
-}
 @Composable
 fun LoadingItem() {
     Row(
